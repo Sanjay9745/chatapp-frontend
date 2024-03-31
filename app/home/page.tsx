@@ -8,6 +8,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { FaAlignJustify } from "react-icons/fa";
 import { MdDelete, MdDeleteSweep } from "react-icons/md";
+
 interface User {
   _id: string;
   name: string;
@@ -47,6 +48,7 @@ function Home() {
   const [users, setUsers] = useState<User[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>(userOnSelect || "");
+  const [isTyping, setIsTyping] = useState(false);
   useEffect(() => {
     const checkToken = async () => {
       try {
@@ -180,18 +182,18 @@ function Home() {
     socket.on("deleteChat", handleDeleteSingleChat);
     socket.on("deleteAllChat", () => {
       setMessages([]);
-    })
+    });
     socket.on("typing", (data: any) => {
       console.log("Typing", data);
-        setUsers((prevUsers) =>
-          prevUsers.map((user) => {
-            if (user._id === data) {
-              return { ...user, is_typing: true };
-            }
-            return user;
-          })
-        );
-    })
+      setUsers((prevUsers) =>
+        prevUsers.map((user) => {
+          if (user._id === data.userId) {
+            return { ...user, is_typing: data.is_typing };
+          }
+          return user;
+        })
+      );
+    });
     return () => {
       socket.off("setUserOnline", handleSetUserOnline);
       socket.off("message", handleMessage);
@@ -211,7 +213,6 @@ function Home() {
 
   const handleMessageChange = (event: any) => {
     setMessage(event.target.value);
-    socket.emit("typing", { userId: localStorage.getItem("userId") });
   };
 
   const handleSendMessage = async (e: any) => {
@@ -273,7 +274,8 @@ function Home() {
   const handleClearChat = async () => {
     try {
       const res = await axios.post(
-        `${SERVER_URL}/user/delete-all-chat`,{receiver_id: selectedUser},
+        `${SERVER_URL}/user/delete-all-chat`,
+        { receiver_id: selectedUser },
         {
           headers: {
             "x-access-token": localStorage.getItem("token"),
@@ -281,11 +283,31 @@ function Home() {
         }
       );
       setMessages([]);
-      socket.emit("deleteAllChat",selectedUser);
+      socket.emit("deleteAllChat", selectedUser);
     } catch (error) {
       console.error(error);
     }
-  }
+  };
+
+  const handleTypingStart = () => {
+    if (!isTyping) {
+      setIsTyping(true);
+      socket.emit("typing", {
+        userId: localStorage.getItem("userId"),
+        is_typing: true,
+      }); // Emit typing event to the server
+    }
+  };
+
+  const handleTypingStop = () => {
+    if (isTyping) {
+      setIsTyping(false);
+      socket.emit("typing", {
+        userId: localStorage.getItem("userId"),
+        is_typing: false,
+      }); // Emit typing event to the server
+    }
+  };
   return (
     <>
       <div className="flex h-screen overflow-hidden">
@@ -360,10 +382,10 @@ function Home() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold">{user.name}</h2>
-                  <p className="text-gray-600">{user.email}</p>
-                  {
-                    user?.is_typing ? <p className="text-sm text-gray-500">Typing...</p> : null
-                  }
+                  <p className="text-gray-600 text-xs">{user.email}</p>
+                  {user?.is_typing ? (
+                    <p className="text-sm text-gray-500">Typing...</p>
+                  ) : null}
                   <p
                     className={`${
                       user?.is_online === "1"
@@ -400,20 +422,54 @@ function Home() {
               <p className="text-sm font-medium">
                 {users.find((user: any) => user._id === selectedUser)?.email}
               </p>
+
+              {isTyping ? (
+                <p className="text-sm text-gray-500">Typing...</p>
+              ) : null}
+              <p
+                className={`${
+                  users.find((user: any) => user._id === selectedUser)
+                    ?.is_online === "1"
+                    ? "text-green-500"
+                    : users.find((user: any) => user._id === selectedUser)
+                        ?.is_online === "0"
+                    ? "text-red-500"
+                    : null
+                }`}
+              >
+                {users.find((user: any) => user._id === selectedUser)
+                  ?.is_online === "1"
+                  ? "Online"
+                  : users.find((user: any) => user._id === selectedUser)
+                      ?.is_online === "0"
+                  ? "Offline"
+                  : null}
+              </p>
             </div>
-            <MdDeleteSweep onClick={handleClearChat} size={26}/>
+            <MdDeleteSweep onClick={handleClearChat} size={26} />
           </header>
           {/* Chat Messages */}
           <div
             className="h-screen overflow-y-auto p-4 pb-36"
             id="chatContainer"
+            onClick={() => setShowMenu(true)}
           >
             {/* Incoming Message */}
-            {messages.map((msg: any) => {
+            {messages.map((msg: any, index) => {
               if (msg.sender_id === userId) {
                 return (
-                  <div className="flex justify-end mb-4 cursor-pointer items-center">
-                    <MdDelete className="text-red-500" onClick={()=>handleDeleteChat(msg._id)} />
+                  <div
+                    className="flex justify-end mb-4 cursor-pointer items-center"
+                    style={
+                      index === messages.length - 1
+                        ? { marginBottom: "50px" }
+                        : {}
+                    }
+                  >
+                    <MdDelete
+                      className="text-red-500"
+                      onClick={() => handleDeleteChat(msg._id)}
+                    />
                     <div className="flex max-w-96 bg-indigo-500 text-white rounded-lg p-3 gap-3">
                       <p>{msg.message}</p>
                     </div>
@@ -428,7 +484,14 @@ function Home() {
                 );
               } else {
                 return (
-                  <div className="flex mb-4 cursor-pointer items-center">
+                  <div
+                    className="flex mb-4 cursor-pointer items-center"
+                    style={
+                      index === messages.length - 1
+                        ? { marginBottom: "50px" }
+                        : {}
+                    }
+                  >
                     <div className="w-9 h-9 rounded-full flex items-center justify-center mr-2">
                       <img
                         src="https://placehold.co/200x/ffa8e4/ffffff.svg?text=ʕ•́ᴥ•̀ʔ&font=Lato"
@@ -439,14 +502,17 @@ function Home() {
                     <div className="flex  max-w-96  bg-pink-600 text-white rounded-lg p-3 gap-3">
                       <p className="text-white">{msg.message}</p>
                     </div>
-                    <MdDelete className="text-red-500" onClick={()=>handleDeleteChat(msg._id)} />
+                    <MdDelete
+                      className="text-red-500"
+                      onClick={() => handleDeleteChat(msg._id)}
+                    />
                   </div>
                 );
               }
             })}
           </div>
           {/* Chat Input */}
-          <footer className="bg-white border-t border-gray-300 p-4 absolute bottom-0 sm:w-3/4 w-100">
+          <footer className="bg-white border-t w-[100%] border-gray-300 p-4 absolute bottom-0 sm:w-3/4 w-100">
             <form className="flex items-center" onSubmit={handleSendMessage}>
               <input
                 type="text"
@@ -454,6 +520,8 @@ function Home() {
                 className="w-full p-2 rounded-md border border-gray-400 focus:outline-none focus:border-blue-500"
                 value={message}
                 onChange={handleMessageChange}
+                onFocus={handleTypingStart}
+                onBlur={handleTypingStop}
               />
               <button className="bg-indigo-500 text-white px-4 py-2 rounded-md ml-2">
                 Send
