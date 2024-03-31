@@ -423,7 +423,7 @@ function Home() {
                 {users.find((user: any) => user._id === selectedUser)?.email}
               </p>
 
-              {isTyping ? (
+              {users.find((user: any) => user._id === selectedUser)?.is_typing? (
                 <p className="text-sm text-gray-500">Typing...</p>
               ) : null}
               <p
