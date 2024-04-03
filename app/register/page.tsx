@@ -31,8 +31,7 @@ function Register() {
             password
         }).then((res) => {
             if(res.status === 200){
-                localStorage.setItem("token", res.data.token);
-                router.push("/home");
+                router.push("/login");
             }
         }).catch((err) => {
             console.log(err);
@@ -113,7 +112,7 @@ function Register() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                  className="w-full text-black border-black bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
                     onClick={handleSubmit}
                 >
                   Sign Up
