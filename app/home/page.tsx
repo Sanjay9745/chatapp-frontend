@@ -323,11 +323,11 @@ function Home() {
           {/* Sidebar Header */}
           <header
             className="p-4 border-b border-gray-300 flex justify-between items-center bg-indigo-600 text-white"
-            onClick={() => setShowMenu(true)}
+          
           >
             <h1 className="text-2xl font-semibold">Chat Web</h1>
             <div className="relative">
-              <button id="menuButton" className="focus:outline-none sm:hidden">
+              <button id="menuButton" className="focus:outline-none sm:hidden" onClick={()=>setShowMenu(true)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5 text-gray-100"

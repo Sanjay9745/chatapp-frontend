@@ -1,7 +1,9 @@
 "use client";
 import SERVER_URL from "@/config/SERVER_URL";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
+import { FaHome } from "react-icons/fa";
 
 function GetUsers() {
   const [users, setUsers] = useState([]);
@@ -9,6 +11,7 @@ function GetUsers() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(10);
+  const router = useRouter();
   useEffect(() => {
     axios
       .get(`${SERVER_URL}/user/get-friend-requests`, {
@@ -74,7 +77,7 @@ function GetUsers() {
   return (
     <>
       <div className="users-container w-full min-h-screen sm:p-10 p-2">
-        
+      <FaHome size={26}  onClick={()=>router.push('/home')} />
         <div className="relative overflow-x-auto">
           <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-900 uppercase dark:text-gray-400">
