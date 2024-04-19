@@ -4,6 +4,15 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { FaHome } from "react-icons/fa";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 function GetUsers() {
   const [users, setUsers] = useState([]);
@@ -11,6 +20,7 @@ function GetUsers() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(10);
+  // const [user, setUser] = useState({} as any);
   const router = useRouter();
   useEffect(() => {
     axios
@@ -28,6 +38,15 @@ function GetUsers() {
       .catch((err) => {
         console.log(err);
       });
+    // axios.get(`${SERVER_URL}/user/details`, {
+    //   headers: {
+    //     "x-access-token": localStorage.getItem("token"),
+    //   },
+    // }).then((res) => {
+    //   setUser(res.data.user);
+    // }).catch((err) => {
+    //   console.log(err);
+    // })
   }, []);
   const handleSearch = (e: any) => {
     e.preventDefault();
@@ -50,9 +69,9 @@ function GetUsers() {
   };
   const handlePageIncrement = (e: any) => {
     e.preventDefault();
- if(page>totalPages){
-        return;
- }   
+    if (page > totalPages) {
+      return;
+    }
     setPage(page + 1);
     axios
       .get(`${SERVER_URL}/user/get-all-users?page=${page + 1}`, {
@@ -69,11 +88,11 @@ function GetUsers() {
       .catch((err) => {
         console.log(err);
       });
-  }
+  };
   const handlePageDecrement = (e: any) => {
     e.preventDefault();
-    if(page<=1){
-        return;
+    if (page <= 1) {
+      return;
     }
     setPage(page - 1);
     axios
@@ -92,13 +111,12 @@ function GetUsers() {
         console.log(err);
       });
   };
-  const handleAddFriendRequest = (id:any) => {
-   
+  const handleAddFriendRequest = (id: any) => {
     axios
       .post(
         `${SERVER_URL}/user/add-friend-request`,
         {
-            receiver_id:id
+          receiver_id: id,
         },
         {
           headers: {
@@ -108,17 +126,21 @@ function GetUsers() {
       )
       .then((res) => {
         if (res.status === 200) {
-            console.log("Friend request sent")
+          console.log("Friend request sent");
         }
       })
       .catch((err) => {
         console.log(err);
       });
-  }
+  };
+  const handleSendMessage = (id: any) => {
+    localStorage.setItem("selectedUser", id);
+    window.location.href = "/home";
+  };
   return (
     <>
       <div className="users-container w-full min-h-screen sm:p-10 p-2">
-      <FaHome size={26} onClick={()=>router.push('/home')} />
+        <FaHome size={26} onClick={() => router.push("/home")} />
         <div>
           <div className="max-w-md mx-auto my-10">
             <label
@@ -165,100 +187,100 @@ function GetUsers() {
         </div>
 
         <div className="relative overflow-x-auto">
-          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-900 uppercase dark:text-gray-400">
-              <tr>
-                <th scope="col" className="px-6 py-3">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3">
-                    
-                  Add Friend
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {users?.map((user: any) => {
+          <Table>
+            <TableCaption>Add Friend</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Name</TableHead>
+
+                <TableHead className="text-right">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((user: any) => {
                 return (
-                  <tr className="bg-white dark:bg-gray-800 rounded-xl">
-                    <th
-                      scope="row"
-                      className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                    >
-                      {user.name}
-                    </th>
-                    <td className="px-6 py-4">
-                        {
-                            user.accepted ? <span className="text-green-500">Friend</span> : <button
-                            id={user._id}
-                            onClick={()=>handleAddFriendRequest(user._id)}
-                            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                            >
+                  <>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        {user?.name}
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        {user.isFriend ? (
+                          <button
+                            onClick={() => handleSendMessage(user._id)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                          >
+                            Message
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleAddFriendRequest(user._id)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                          >
                             Add Friend
-                            </button>
-                        }
-                     
-                    </td>
-                  </tr>
+                          </button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
+
           <nav aria-label="Page navigation example" style={{ margin: "10px" }}>
             <ul className="inline-flex -space-x-px text-sm">
-                {
-                    page>1&&<li>
-                    <p
-                        onClick={handlePageDecrement}
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                    >
-                    Previous
-                    </p>
-                </li>
-                }
-   
-             
-              {page>1&&<li>
-                <p
+              {page > 1 && (
+                <li>
+                  <p
                     onClick={handlePageDecrement}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  {page - 1}
-                </p>
-              </li>
+                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  >
+                    Previous
+                  </p>
+                </li>
+              )}
 
-              }
-              
+              {page > 1 && (
+                <li>
+                  <p
+                    onClick={handlePageDecrement}
+                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  >
+                    {page - 1}
+                  </p>
+                </li>
+              )}
+
               <li>
                 <p
-                    aral-current="page"
+                  aral-current="page"
                   className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   {page}
                 </p>
               </li>
-              {
-                    page<totalPages&&<li>
-                    <p
-                        onClick={handlePageIncrement}
-    
+              {page < totalPages && (
+                <li>
+                  <p
+                    onClick={handlePageIncrement}
                     className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                    >
+                  >
                     {page + 1}
-                    </p>
+                  </p>
                 </li>
-              }
-           {
-                    page<totalPages&&   <li>
-                    <p
-                        onClick={handlePageIncrement}
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                    >
-                      Next
-                    </p>
-                  </li>
-           }
-           
+              )}
+              {page < totalPages && (
+                <li>
+                  <p
+                    onClick={handlePageIncrement}
+                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  >
+                    Next
+                  </p>
+                </li>
+              )}
             </ul>
           </nav>
         </div>

@@ -1,27 +1,33 @@
 "use client";
-import axios from "axios";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import React, { useEffect, useState } from "react";
 import SERVER_URL from "@/config/SERVER_URL";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+
 function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-useEffect(() => {
-  if(localStorage.getItem("token")){
-
-    axios.get(`${SERVER_URL}/user/protected`,{
-            headers:{
-                "x-access-token":localStorage.getItem("token")
-            }
-    }).then((res)=>{
-        if(res.status===200){
-            router.push("/home")
-        }
-    
-    })
-  }
-},[])
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      axios
+        .get(`${SERVER_URL}/user/protected`, {
+          headers: {
+            "x-access-token": localStorage.getItem("token"),
+          },
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            router.push("/home");
+          }
+        });
+    }
+  }, []);
   const handleSubmit = (e: any) => {
     e.preventDefault();
     axios
@@ -34,7 +40,6 @@ useEffect(() => {
           localStorage.setItem("token", res.data.token);
           localStorage.setItem("userId", res.data.userId);
           router.push("/home");
-          
         }
       })
       .catch((err) => {
@@ -42,78 +47,70 @@ useEffect(() => {
       });
   };
   return (
-    <>
-      <section className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-          <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                Sign in to your account
-              </h1>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Your email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder="name@company.com"
-                  onChange={(e) => setEmail(e.target.value)}
-                  value={email}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="••••••••"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  onChange={(e) => setPassword(e.target.value)}
-                  value={password}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <a
-                  href="#"
-                  className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500"
-                >
-                  Forgot password?
-                </a>
-              </div>
-              <button
-                type="submit"
-                className="w-full text-black border-black bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 dark:text-white  dark:text-white dark:border-white dark:border-2 dark:rounded-lg dark:text-sm dark:px-5 dark:py-2.5 dark:text-center"
-                onClick={handleSubmit}
-              >
-                Sign in
-              </button>
-              <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                Don’t have an account yet?{" "}
-                <p
-      
-                  className="font-medium text-primary-600 hover:underline dark:text-primary-500"
-                  onClick={() => router.push("/register")}
-                >
-                  Sign up
-                </p>
-              </p>
+    <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-1 xl:min-h-[800px]">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold">Login</h1>
+            <p className="text-balance text-muted-foreground">
+              Enter your email below to login to your account
+            </p>
+          </div>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
+              />
             </div>
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/forgot-password"
+                  className="ml-auto inline-block text-sm underline"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                required
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
+              />
+            </div>
+            <Button type="button" className="w-full" onClick={handleSubmit}>
+              Login
+            </Button>
+            {/* <Button variant="outline" className="w-full">
+              Login with Google
+            </Button> */}
+          </div>
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="underline">
+              Sign up
+            </Link>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+      {/* <div className="hidden bg-muted lg:block">
+        <Image
+          src="/rose.jpeg"
+          alt="Login"
+          width={500}
+          height={500}
+          layout="responsive"
+        />
+      </div> */}
+    </div>
   );
 }
 

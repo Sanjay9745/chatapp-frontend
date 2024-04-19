@@ -1,6 +1,6 @@
 "use client";
 import SideBar from "@/components/SideBar";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { io } from "socket.io-client";
 import SERVER_URL from "@/config/SERVER_URL";
 import SOCKET_URL from "@/config/SOCKET_URL";
@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { FaAlignJustify } from "react-icons/fa";
 import { MdDelete, MdDeleteSweep } from "react-icons/md";
 import DropdownMenu from "@/components/DropdownMenu";
+import { Button } from "@/components/ui/button";
 
 interface User {
   _id: string;
@@ -47,9 +48,20 @@ function Home() {
   const [messages, setMessages] = useState<Messages[]>([]);
   const [message, setMessage] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [showMenu, setShowMenu] = useState(false);
+  const [showMenu, setShowMenu] = useState(true);
   const [selectedUser, setSelectedUser] = useState<string>(userOnSelect || "");
   const [isTyping, setIsTyping] = useState(false);
+  useLayoutEffect(() => {
+    if (typeof window !== "undefined") {
+    if (!localStorage.getItem("token")) {
+
+      router.replace("/login");
+    }
+      if(localStorage.getItem("selectedUser")){
+        setSelectedUser(localStorage.getItem("selectedUser") || "");
+      }
+  }
+  }, []);
   useEffect(() => {
     const checkToken = async () => {
       try {
@@ -83,7 +95,11 @@ function Home() {
                   })
                   .then((res) => {
                     setUsers(res.data.users);
-                    setSelectedUser(selectedUser || res.data.users[0]._id);
+                    if(res.data.users.length === 0){
+                     return
+                    }
+                    setSelectedUser(selectedUser || res.data?.users[0]._id);
+
                     localStorage.setItem(
                       "selectedUser",
                       selectedUser || res.data.users[0]._id
@@ -314,7 +330,7 @@ function Home() {
       <div className="flex h-screen overflow-hidden">
         {/* Sidebar */}
         <div
-          className={`w-3/4 sm:w-1/4 bg-white border-r border-gray-300 ${
+          className={`w-full sm:w-1/4 bg-white border-r border-gray-300 ${
             showMenu
               ? "sm:relative absolute transform translate-x-[-100%] sm:translate-x-[0%] transition ease-in-out delay-300"
               : ""
@@ -327,7 +343,7 @@ function Home() {
           >
             <h1 className="text-2xl font-semibold">Chat Web</h1>
             <div className="relative">
-              <button id="menuButton" className="focus:outline-none sm:hidden" onClick={()=>setShowMenu(true)}>
+              {/* <button id="menuButton" className="focus:outline-none sm:hidden" onClick={()=>setShowMenu(true)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5 text-gray-100"
@@ -337,11 +353,16 @@ function Home() {
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path d="M2 10a2 2 0 012-2h12a2 2 0 012 2 2 2 0 01-2 2H4a2 2 0 01-2-2z" />
                 </svg>
-              </button>
+              </button> */}
               {/* Menu Dropdown */}
            <DropdownMenu  />
             </div>
           </header>
+          <div className=" w-full flex justify-evenly items-center py-2" >
+          <Button variant="outline" size='sm' className="border-2 border-green-500 text-green-500 font-medium" onClick={()=>router.push('/get-users')}>Add Friend</Button>
+          <Button variant="outline" size='sm'  className="border-2 border-purple-500 text-purple-500 font-medium" onClick={()=>router.push('/accept-friend')}>Friend Requests</Button>
+
+          </div>
           {/* Contact List */}
           <div className="overflow-y-auto h-screen p-3 mb-9 pb-20">
             {users.map((user: any) => (
@@ -385,7 +406,8 @@ function Home() {
           </div>
         </div>
         {/* Main Chat Area */}
-        <div className="flex-1">
+        <div className={`${showMenu ? 'flex-1' : 'hidden'}`}
+>
           {/* Chat Header */}
 
           <header className="bg-white p-4 text-gray-700 flex justify-start items-center gap-4">
